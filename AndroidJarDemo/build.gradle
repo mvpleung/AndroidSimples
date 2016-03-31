@@ -56,19 +56,24 @@ task buildJar(dependsOn: ['compileReleaseJavaWithJavac'], type: Jar) {
     include "org/chaos/demo/jar/**/*.class"
 
     //注: exclude include 支持可变长参数
+    
+    String inJarPath = buildJar.archivePath;
+    println 'The output path: ' + inJarPath.substring(0,inJarPath.lastIndexOf("\\"))
 }
 
-task proguardJar(dependsOn: ['buildJar','processReleaseResources'], type: ProGuardTask) {
+task proguardJar(dependsOn: ['buildJar', 'processReleaseResources'], type: ProGuardTask) {
     //Android 默认的 proguard 文件
     configuration android.getDefaultProguardFile('proguard-android.txt')
-    //会根据该文件对 Jar 进行混淆，注意：需要在 manifest 注册的组件也要加入该文件中
+    //manifest 注册的组件对应的 proguard 文件
+    configuration project.buildDir.absolutePath + "/intermediates/proguard-rules/release/aapt_rules.txt"
+    //////会根据该文件对 Jar 进行混淆，注意：需要在 manifest 注册的组件也要加入该文件中
     configuration 'proguard-rules.pro'
 
     String inJar = buildJar.archivePath.getAbsolutePath()
     //输入 jar
     injars inJar
     //输出 jar
-    outjars inJar.substring(0, inJar.lastIndexOf('/')) + "/proguard-${buildJar.archiveName}"
+    outjars inJar.substring(0, inJar.lastIndexOf('\\')) + "\\proguard-${buildJar.archiveName}"
 
     //设置不删除未引用的资源(类，方法等)
     dontshrink
